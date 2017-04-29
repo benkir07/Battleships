@@ -13,7 +13,7 @@ AREA equ ROW_AMOUNT * ROW_AMOUNT
 start_game db 'Wellcome to the game of battle ships!', 10, 'This is a very early version of the game, hopefully you will enjoy anyway', 10, 'this program was written by Ben Kirshenbaum', 10, '$'
 tableTopPart db ' a b c d e f g h i j$'
 blueExplain db 219, 219, ' is an empty slot', 10, '$'
-greenExplain db 219, 219,  ' is the slot you are looking at currently', 10, '$'
+greenExplain db 219, 219,  ' is the slot you are currently looking at', 10, '$'
 whiteExplain db 219, 219,  ' is a ship part', 10, '$'
 redExplain db 219, 219,  ' is a slot you shot and hit a ship', 10, '$'
 yellowExplain db 219, 219, ' is a slot you shot and did not hit a ship', 10, '$'
@@ -430,7 +430,7 @@ right_legal:
 	jmp done_writing_positions
 	
 too_close_to_border:
-	sub sp, 2
+	add sp, 2
 	inc ch
 	call clear_board
 	mov ax, [bp+8]
