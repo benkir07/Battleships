@@ -589,6 +589,18 @@ AfterColorSet:
 	inc bx
 	cmp cl, ROW_AMOUNT
 	jb anotherColumn
+	push bx
+	push cx
+	mov ah, 9
+	mov cx, 1
+	mov bx, 0
+	int 10h
+	mov ah, 2
+	mov dl, 219
+	int 21h ;visual help :)
+	pop cx
+	pop bx
+	
 	inc ch
 	cmp ch, ROW_AMOUNT
 	jb anotherLine
