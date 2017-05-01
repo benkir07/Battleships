@@ -1003,7 +1003,7 @@ turn_cycle:
 	push ax
 	call player_turn
 	cmp al, 1
-	je turn_cycle
+	je win1
 	call Wait_for_key_press
 	xor bx, 11b
 	jmp turn_cycle
