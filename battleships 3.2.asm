@@ -428,7 +428,7 @@ right_legal:
 	push di
 	dec ch
 	cmp ch, 0
-	jne place_right
+	jne place_right1
 	jmp done_writing_positions
 	
 too_close_to_border:
