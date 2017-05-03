@@ -494,7 +494,7 @@ done_placing_a_ship:
 	pop bx
 	pop ax
 	pop bp
-	ret 4
+	ret 6
 endp Create_Board
 
 proc clear_board
