@@ -49,7 +49,7 @@ Player2Board db AREA dup (BLUE)
 Player1Guessing db AREA dup (BLUE)
 Player2Guessing db AREA dup (BLUE)
 
-Starting_LeftShip db 5,'$' ;$ marks the end of the array
+Starting_LeftShip db 2,3,3,4,5,'$' ;$ marks the end of the array
 Player1LeftShip db 10 dup (0)
 Player2LeftShip db 10 dup (0)
 
