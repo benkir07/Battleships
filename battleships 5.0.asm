@@ -1813,9 +1813,9 @@ proc MainMenu
 	push cx
 	push dx
 	
+PresentMain:
 	mov ax, 0
 	int 33h
-PresentMain:
 	push offset MenuPic
 	call PrintBMP
 MainMenuDataWait:
@@ -1870,6 +1870,8 @@ proc PlayMenu
 	push cx
 	push dx
 	
+	mov ax, 0
+	int 33h
 	push offset PlayPic
 	call PrintBMP
 PlayMenuDataWait:
