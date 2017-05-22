@@ -10,8 +10,8 @@ DATASEG
 	ErrorMsg db 'Error', 13, 10,'$'
 CODESEG
 ;opens a file
-;input: offset file name, offset to put handle
-;output: handle in the desired place
+;input: offset file name
+;output: file's handle
 proc OpenFile
 	push bp
 	mov bp, sp
@@ -21,16 +21,16 @@ proc OpenFile
 	; Open file
 	mov ah, 3Dh
 	xor al, al
-	mov dx, [bp+6] ;file name
+	mov dx, [bp+4] ;file name
 	int 21h
 	jc openerror
-	mov bx, [bp+4] ;handle offset
-	mov [bx], ax
+	mov [bp+4], ax ;file's handle
+	
 	pop dx
 	pop bx
 	pop ax
 	pop bp
-	ret 4
+	ret
 openerror:
 	mov dx, offset ErrorMsg
 	mov ah, 9h
@@ -39,11 +39,13 @@ openerror:
 	pop bx
 	pop ax
 	pop bp
-	ret 4
+	ret
 endp OpenFile
 
 ;Reads Header and Palette
-;input: file handle
+;input: file handle, offset to put header, offset to put Palette
+;output: changes the given places the the header and palette
+;		 moves the reading pointer in the file to the start of the actual image
 proc ReadHeaderPalette
 	push bp
 	mov bp, sp
@@ -51,26 +53,27 @@ proc ReadHeaderPalette
 	push bx
 	push cx
 	push dx
-	mov bx, [bp+4]
+	mov bx, [bp+8]
 	mov ah,3fh
 	mov cx,54
-	mov dx,offset Header
+	mov dx, [bp+6]
 	int 21h
 	; Read BMP file color palette, 256 colors * 4 bytes (400h)
 	mov ah,3fh
 	mov cx,400h
-	mov dx,offset Palette
+	mov dx, [bp+4]
 	int 21h
 	pop dx
 	pop cx
 	pop bx
 	pop ax
 	pop bp
-	ret 2
+	ret 6
 endp ReadHeaderPalette
 
-;Copies the palette
-;input: file handle
+;chnanges the colors from BGR (assemblu color format) to RGB (NMP file color format)
+;input: file handle, offset to read Palette from
+;output: the colors in the ports are changed
 proc CopyPal
 	push bp
 	mov bp, sp
@@ -79,11 +82,11 @@ proc CopyPal
 	push cx
 	push dx
 	push si
-	mov bx, [bp+4]
+	mov bx, [bp+6]
 	; Copy the colors palette to the video memory
 	; The number of the first color should be sent to port 3C8h
 	; The palette is sent to port 3C9h
-	mov si,offset Palette
+	mov si, [bp+4]
 	mov cx,256
 	mov dx,3C8h
 	mov al,0
@@ -112,11 +115,12 @@ PalLoop:
 	pop bx
 	pop ax
 	pop bp
-	ret 2
+	ret 4
 endp CopyPal
 
 ;prints to the graphic screen the BMP file (after opening file, reading palette and copying it)
 ;input: file handle
+;output: copying the BMP file from the file to the data segment to the A000 segment, the graphics screen
 proc CopyBitmap
 	push bp
 	mov bp, sp
@@ -169,6 +173,7 @@ endp CopyBitmap
 
 ;closes an open file
 ;input: file handle
+;output: none
 proc CloseFile
 	push bp
 	mov bp, sp
@@ -183,8 +188,10 @@ proc CloseFile
 	ret 2
 endp CloseFile
 
-;this procedure prints to the screen a BMP file
+;this procedure prints to the screen a BMP file, doing all the things needed
+;opening the file, reading header, reading palette, copying the palette, copying the BMP, and closing the file
 ;input: offset of file's name
+;output: moving to graphics mode and chaning the screen to the given BMP file
 proc PrintBMP
 	push bp
 	mov bp, sp
@@ -194,16 +201,20 @@ proc PrintBMP
 	mov ax, 13h
 	int 10h
 	; Process BMP file
-	mov ax, [bp+4]
-	push ax
-	push offset filehandle
+	push [bp+4]
 	call OpenFile
-	push [filehandle]
+	pop ax ;file's handle
+	push ax
+	push offset Header
+	push offset Palette
 	call ReadHeaderPalette
-	push [filehandle]
+	push ax
+	push offset Palette
 	call CopyPal
-	push [filehandle]
+	push ax
 	call CopyBitmap
+	push ax
+	call CloseFile
 	
 	pop ax
 	pop bp
