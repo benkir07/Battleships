@@ -14,7 +14,7 @@ start:
 ; --------------------------
 	mov ah, 9 ;code to change colors
 	mov bx, 2 ;color number
-	mov cx, 1 ;how many characters to print this color
+	mov cx, 2 ;how many characters to print this color
 	int 10h ;changes by the above changes
 	mov ah, 2 ;print one char code
 	mov dl, ' ' ;the char to print

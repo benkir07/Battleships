@@ -6,56 +6,65 @@ DATASEG
 ; Your variables here
 ; --------------------------
 
-ROW_AMOUNT equ 10
-AREA equ ROW_AMOUNT * ROW_AMOUNT
+	ROW_AMOUNT equ 10
+	AREA equ ROW_AMOUNT * ROW_AMOUNT
 
 ;AI variables
-Last_Hit_Part dw -1 ;remembers the offset of the last ship part hit, resets to -1 when ship is down
-known_direction db 0 ;remebers the direction of the ship, -1 means the direction is unknown, 0 means up, 1 down, 2 left, 3 right
+	Last_Hit_Part dw -1 ;remembers the offset of the last ship part hit, resets to -1 when ship is down
+	known_direction db 0 ;remebers the direction of the ship, -1 means the direction is unknown, 0 means up, 1 down, 2 left, 3 right
 
 ;actual variables
-BLUE equ ' '
-Player1Board db AREA dup (BLUE)
-Player2Board db AREA dup (BLUE)
+	BLUE equ ' '
+	Player1Board db AREA dup (BLUE)
+	Player2Board db AREA dup (BLUE)
 
-Player1Guessing db AREA dup (BLUE)
-Player2Guessing db AREA dup (BLUE)
+	Player1Guessing db AREA dup (BLUE)
+	Player2Guessing db AREA dup (BLUE)
 
-Starting_LeftShip db 2,3,3,4,5,'$' ;$ marks the end of the array
-Player1LeftShip db 10 dup (0)
-Player2LeftShip db 10 dup (0)
-
-;file's things
-board db '00.txt',0
+	Starting_LeftShip db 2,3,3,4,5,'$' ;$ marks the end of the array
+	Player1LeftShip db 10 dup (0)
+	Player2LeftShip db 10 dup (0)
 
 ;output stuff
-start_game db 'Wellcome to the game of battle ships!', 10, 'This is a very early version of the game, hopefully you will enjoy anyway', 10, 'this program was written by Ben Kirshenbaum', 10, '$'
-blueExplain db 219, 219, ' is an empty slot', 10, '$'
-greenExplain db 219, 219,  ' is the slot you are currently looking at', 10, '$'
-whiteExplain db 219, 219,  ' is a ship part', 10, '$'
-redExplain db 219, 219,  ' is a slot that was shot and a ship discovered', 10, '$'
-yellowExplain db 219, 219, ' is a slot uncovered to be without any ships', 10, '$'
-active_player_string db 'Player $'
-active_computer_string db 'Computer$'
-place_ship1 db 'Starting to place a ship $'
-place_ship2 db ' tiles long' , 10, 'Where would you like to have its first position?', 10, 'use the arrow keys to move your selected slot', 10, 'press enter when you have the slot you want to place selcted', 10, '$'
-direction db 'What direction would you like this ship to continue?', 10, 'press w for up, s for down, a for left and d for right', 10, '$'
-illegal_direction db 'That is not a direction!', 10, '$'
-illegal_place db 'There is an illegal place to place a ship in!' , 10, 'either one of its sides is taken or it is itelf taken', 10, '$'
-no_space db 'There is no legal space in this direction to place a ship', 10, '$'
-no_more_ship db 'You are done placing ships!' , 10, '$'
-where_to_shoot db 'Where would you like to shoot?',10, 'use the arrow keys to move your selected slot', 10, 'press enter when you have the slot you want to shoot selcted',10,'$'
-shot_already db 'You already uncovered this slot!', 10, '$'
-miss db 'Miss!', 10, '$'
-hit db 'Hit!', 10, '$'
-fallen_ship db 'Ship is down! Ship is down!', 10, 'marking in yellow all adjacent slots', 10, '$'
-any_key_to_continue db 'Press any key to continue...' , 10, '$'
-win db ' You won!$'
-lose db ' You lost!$'
-computer_start_turn db 'This is the current state of the Compter, Computer Ready to shoot', 10 , '$'
+	blueExplain db 219, 219, ' is an empty slot', 10, '$'
+	greenExplain db 219, 219,  ' is the slot you are currently looking at', 10, '$'
+	whiteExplain db 219, 219,  ' is a ship part', 10, '$'
+	redExplain db 219, 219,  ' is a slot that was shot and a ship discovered', 10, '$'
+	yellowExplain db 219, 219, ' is a slot uncovered to be without any ships', 10, '$'
+	active_player_string db 'Player $'
+	active_computer_string db 'Computer$'
+	place_ship1 db 'Starting to place a ship $'
+	place_ship2 db ' tiles long' , 10, 'Where would you like to have its first position?', 10, 'use the arrow keys to move your selected slot', 10, 'press enter when you have the slot you want to place selcted', 10, '$'
+	direction db 'What direction would you like this ship to continue?', 10, 'use the arrow keys', 10, '$'
+	direction2 db 'Press enter if you are satisfied with this placement', 10 ,'Press any other key to place this ship in another way', 10, '$'
+	illegal_direction db 'That is not a direction!', 10, '$'
+	illegal_place db 'There is an illegal place to place a ship in!' , 10, 'either one of its sides is taken or it is itelf taken', 10, '$'
+	no_space db 'There is no legal space in this direction to place a ship', 10, '$'
+	no_more_ship db 'You are done placing ships!' , 10, '$'
+	where_to_shoot db 'Where would you like to shoot?',10, 'use the arrow keys to move your selected slot', 10, 'press enter when you have the slot you want to shoot selcted',10,'$'
+	shot_already db 'You already uncovered this slot!', 10, '$'
+	miss db 'Miss!', 10, '$'
+	hit db 'Hit!', 10, '$'
+	fallen_ship db 'Ship is down! Ship is down!', 10, 'marking in yellow all adjacent slots', 10, '$'
+	any_key_to_continue db 'Press any key to continue...' , 10, '$'
+	computer_start_turn db 'This is the current state of the Compter, Computer Ready to shoot', 10 , '$'
 
-;input stuff
-direction_input db 2,0,0,0
+;BMP print variables
+	MenuPic db 'men.bmp',0
+	PlayPic db 'pla.bmp',0
+	rules1 db 'ru1.bmp' ,0
+	rules2 db 'ru2.bmp',0
+	rules3 db 'ru3.bmp' ,0
+	rules4 db 'ru4.bmp' ,0
+	Player1Win db 'pl1.bmp',0
+	Player2Win db 'pl2.bmp',0
+	win db 'win.bmp',0
+	lose db 'los.bmp',0
+	filehandle dw ?
+	Header db 54 dup (0)
+	Palette db 256*4 dup (0)
+	ScrLine db 320 dup (0)
+	ErrorMsg db 'Error', 13, 10,'$'
 
 CODESEG
 ;this procedure allows the user to choose using the keyboard a position on the board
@@ -70,20 +79,13 @@ proc Choose_Place
 	push dx
 	push si
 	push di
+	
 	mov si, [bp+4] ;the board offset
 	mov di, [bp+4] ;the looked at position
 present:
-	mov ax, [bp+6]
-	push ax
+	push [bp+6]
 	push si
 	call Present_Board
-	
-	up equ 048h
-	left equ 04Bh
-	down equ 050h
-	right equ 04Dh
-	keyEnter equ 01Ch
-	
 	
 	mov ax, di
 	sub ax, si
@@ -99,17 +101,24 @@ present:
 	inc dl ;go rigth one column
 	xor bx, bx
 	mov ah, 2
-	int 10h
+	int 10h ;moves the cursor, dh y axis, dl x axis
 	mov bx, 10
 	mov cx, 2
 	mov ah, 9
-	int 10h
+	int 10h ;changes the next two digits to light green
 	mov ah, 2
 	mov dl, 219
 	int 21h
 	int 21h
 	
 	pop bx ;bh hold x axis, bl y axis (as dx did before)
+	
+	
+	up equ 048h
+	left equ 04Bh
+	down equ 050h
+	right equ 04Dh
+	keyEnter equ 01Ch
 	
 waitForData:
 	mov ah, 0
@@ -160,7 +169,7 @@ chosen:
 endp Choose_Place
 
 
-;this procedure checks whether or not a position on th board is legal to place a ship part
+;this procedure checks whether or not a position on the board is legal to place a ship part (checks its surrondings)
 ;input: offset of place, board offset
 ;output: al = 0 if legal and al = -1 if illegal 
 proc Check_legal_to_place
@@ -244,8 +253,8 @@ endp Check_legal_to_place
 
 ;this procedure places ships on the board according to input from the player
 ;input: active player number, offset of the player's board, offset of an array keeping lengths of the ships to place
-;output: none
-proc Create_Board
+;output: changes the player's board to the given settings
+proc CreatePlayerBoard
 	push bp
 	mov bp, sp
 	push ax
@@ -261,8 +270,7 @@ proc Create_Board
 start_placeing_ship:
 	push -1
 	call clear_board
-	mov ax, [bp+8]
-	push ax
+	push [bp+8]
 	push bx
 	call Present_Board
 	push 0
@@ -281,8 +289,7 @@ illegal4:
 	mov dx, offset place_ship2
 	int 21h
 	
-	mov ax, [bp+8]
-	push ax
+	push [bp+8]
 	push bx
 	call Choose_Place
 	pop di
@@ -293,8 +300,7 @@ illegal4:
 	cmp al, 0
 	je legal3
 	call clear_board
-	mov ax, [bp+8]
-	push ax
+	push [bp+8]
 	push bx
 	call Present_Board
 	push 0
@@ -306,35 +312,39 @@ illegal4:
 legal3:
 	push di ;keep in the stack segment the position future to be painted
 	dec ch
-	mov [byte ptr di], cl
+	mov [byte ptr di], GREEN
 	call clear_board
-	mov ax, [bp+8]
-	push ax
+	push [bp+8]
 	push bx
 	call Present_Board
 	push 0
 	call explainColors
 illegal5:
 	mov [byte ptr di], BLUE ;clears the place to allow correct checking of legal placing
-	mov dx, offset direction
+	
+	up equ 048h
+	left equ 04Bh
+	down equ 050h
+	right equ 04Dh
+	
 	mov ah, 9
+	mov dx, offset direction
 	int 21h
-	mov ah, 0ah
-	mov dx, offset direction_input
-	int 21h
-	cmp [direction_input+2], 'w'
+	mov ah, 0
+	int 16h
+	cmp ah, up
 	je place_up
-	cmp [direction_input+2], 's'
+	cmp ah, down
 	je place_down
-	cmp [direction_input+2], 'a'
+	cmp ah, left
 	je place_left
-	cmp [direction_input+2], 'd'
+	cmp ah, right
 	je place_right
+	
 ;if here, input wasn't legal
-	mov [di], cl
+	mov [byte ptr di], GREEN
 	call clear_board
-	mov ax, [bp+8]
-	push ax
+	push [bp+8]
 	push bx
 	call Present_Board
 	push 0
@@ -351,7 +361,7 @@ place_up:
 	mov dx, di
 	sub dx, ax ;dx stores now where the last placement would be
 	cmp dx, bx
-	jb too_close_to_border
+	jl too_close_to_border
 place_up1:
 	sub di, ROW_AMOUNT
 	push di
@@ -399,7 +409,7 @@ place_left:
 ;ah stores how many tiles are there to the left
 	
 	cmp ah, ch
-	jb too_close_to_border
+	jl too_close_to_border
 place_left1:
 	dec di
 	push di
@@ -443,8 +453,7 @@ too_close_to_border:
 	add sp, 2
 	inc ch
 	call clear_board
-	mov ax, [bp+8]
-	push ax
+	push [bp+8]
 	push bx
 	call Present_Board
 	push 0
@@ -461,8 +470,7 @@ remove_written_postitions:
 	jne remove_written_postitions
 	push -1
 	call clear_board
-	mov ax, [bp+8]
-	push ax
+	push [bp+8]
 	push bx
 	call Present_Board
 	push 0
@@ -473,11 +481,49 @@ remove_written_postitions:
 	jmp illegal4
 	
 done_writing_positions:
+	push bp
+	mov bp, sp
+place_ship:
+	add bp, 2
+	mov di, [bp]
+	cmp di, -1
+	je ship_placed
+GREEN equ 'n'
+	mov [byte ptr di], GREEN
+	jmp place_ship
+ship_placed:
+	mov bp, sp
+	pop bp
+	call clear_board
+	push [bp+8]
+	push bx
+	call Present_Board
+	push 0
+	call explainColors
+	mov ah, 9
+	mov dx, offset direction2
+	int 21h
+	
+	keyEnter equ 01Ch
+	mov ah, 0
+	int 16h
+	cmp ah, keyEnter
+	je paint_ship_white
+delete_positions:
 	pop di
 	cmp di, -1
-	je done_placing_a_ship
+	je start_placeing_ship
+	mov [byte ptr di], BLUE
+	jmp delete_positions
+	
+	
+	
+paint_ship_white:
+	pop di
+	cmp di, -1
+	je done_placing_a_ship ;clears the stack from not wanted positions
 	mov [di], cl
-	jmp done_writing_positions
+	jmp paint_ship_white
 done_placing_a_ship:
 	inc cl
 	inc si
@@ -485,8 +531,7 @@ done_placing_a_ship:
 	jne start_placeing_ship
 	
 	call clear_board
-	mov ax, [bp+8]
-	push ax
+	push [bp+8]
 	push bx
 	call Present_Board
 	push 0
@@ -503,8 +548,197 @@ done_placing_a_ship:
 	pop ax
 	pop bp
 	ret 6
-endp Create_Board
+endp CreatePlayerBoard
 
+;this procedure places ships on the board randomly
+;input: offset of the computer's board, offset of an array keeping lengths of the ships to place
+;output: changes the computer's board to a randomly generated board
+proc CreateComputerBoard
+	push bp
+	mov bp, sp
+	push ax
+	push bx
+	push cx
+	push dx
+	push si
+	push di
+	
+	mov bx, [bp+6] ;the board
+	mov si, [bp+4] ;array keeping the lengths of the ships
+	mov cl, '0' ;cl keeps the value that will represent the ship on the board
+start_placeing_ship_:
+	push -1
+illegal4_:
+	mov ch, [si] ;ch represents the left slots to place
+	push cx
+	mov ah, 2Ch
+	int 21h ;random place
+	pop cx
+	mov al, dl
+	mov ah, AREA
+	mul ah
+	mov dl, 100
+	div dl ;al has a random numeber betwin 0 and AREA-1
+	xor ah, ah
+	mov di, ax
+	add di, bx ;di has now the position looked at
+	
+	push di ;where the ship starts
+	push bx
+	call Check_legal_to_place
+	cmp al, 0
+	jne illegal4_
+	push di ;keep in the stack segment the position future to be painted
+	dec ch
+
+	push cx
+	mov ah, 2Ch
+	int 21h ;random direction
+	pop cx
+	mov al, dl
+	xor ah, ah
+	mov dl, 4
+	div dl ;ah=0 would mean up, ah=1 down, ah=2 left, ah=3 right
+	cmp ah, 0
+	je place_up_
+	cmp ah, 1
+	je place_down_
+	cmp ah, 2
+	je place_left_
+	jmp place_right_
+	
+place_up_:
+;checks it is far enough from the border
+	mov al, ROW_AMOUNT
+	mul ch ;ax stores now how much could be between di and bx, where we place and the board's start
+	mov dx, di
+	sub dx, ax ;dx stores now where the last placement would be
+	cmp dx, bx
+	jl too_close_to_border_
+place_up1_:
+	sub di, ROW_AMOUNT
+	push di
+	push bx
+	call Check_legal_to_place
+	cmp al, 0
+	jne remove_written_postitions_ ;remove the ship and go back to start placing it
+up_legal_:
+	push di
+	dec ch
+	cmp ch, 0
+	jne place_up1_
+	jmp done_writing_positions_
+	
+place_down_:
+;checks it is far enough from the border
+	mov al, ROW_AMOUNT
+	mul ch ;ax stores now how much could be between di and bx, where we place and the board's start
+	mov dx, di
+	add dx, ax ;dx stores now where the last placement would be
+	mov ax, bx
+	add ax, AREA-1 ;ax stores the end of the board
+	cmp dx, ax
+	ja too_close_to_border_
+place_down1_:
+	add di, ROW_AMOUNT
+	push di
+	push bx
+	call Check_legal_to_place
+	cmp al, 0
+	jne remove_written_postitions_ ;remove the ship and go back to start placing it
+down_legal_:
+	push di
+	dec ch
+	cmp ch, 0
+	jne place_down1_
+	jmp done_writing_positions_
+	
+place_left_:
+;checks it is far enough from the border
+	mov ax, di
+	sub ax, bx
+	mov dl, ROW_AMOUNT
+	div dl ;ah stores x axis, al stores y axis
+;ah stores how many tiles are there to the left
+	
+	cmp ah, ch
+	jl too_close_to_border_
+place_left1_:
+	dec di
+	push di
+	push bx
+	call Check_legal_to_place
+	cmp al, 0
+	jne remove_written_postitions_ ;remove the ship and go back to start placing it
+left_legal_:
+	push di
+	dec ch
+	cmp ch, 0
+	jne place_left1_
+	jmp done_writing_positions_
+	
+place_right_:
+;checks it is far enough from the border
+	mov ax, di
+	sub ax, bx
+	mov dl, ROW_AMOUNT
+	div dl ;ah stores x axis, al stores y axis
+;ah stores how many tiles are there to the left
+	mov al, ROW_AMOUNT
+	sub al, [si] ;al stores now how many tiles is max allow to be to the left
+	cmp ah, al
+	ja too_close_to_border_
+place_right1_:
+	inc di
+	push di
+	push bx
+	call Check_legal_to_place
+	cmp al, 0
+	jne remove_written_postitions_ ;remove the ship and go back to start placing it
+right_legal_:
+	push di
+	dec ch
+	cmp ch, 0
+	jne place_right1_
+	jmp done_writing_positions_
+	
+too_close_to_border_:
+	add sp, 2
+	jmp illegal4_
+;removes the saved positions from the stack until hits the -1 signing to stop
+;this allows to start again placing a ship
+remove_written_postitions_:
+	pop ax
+	cmp ax, -1
+	jne remove_written_postitions_
+	push -1
+	jmp illegal4_
+	
+done_writing_positions_:
+	pop di
+	cmp di, -1
+	je done_placing_a_ship_
+	mov [di], cl
+	jmp done_writing_positions_
+done_placing_a_ship_:
+	inc cl
+	inc si
+	cmp [byte ptr si], '$' ;checks if got to end of array
+	jne start_placeing_ship_
+	
+	pop di
+	pop si
+	pop dx
+	pop cx
+	pop bx
+	pop ax
+	pop bp
+	ret 4
+endp CreateComputerBoard
+
+;this procedure moves to text mode effectivly clearing the screen from all text
+;input: none
+;output: none
 proc clear_board
 	push ax
 	mov ax, 3
@@ -512,9 +746,10 @@ proc clear_board
 	pop ax
 	ret
 endp clear_board
+
 ;this procedure prints to the screen a chosen board
 ;input: active player number (-1 if computer), the board to print's offset
-;output: none
+;output: the board presented to the screen
 proc Present_Board
 	push bp
 	mov bp, sp
@@ -535,12 +770,12 @@ proc Present_Board
 	int 21h
 	
 	cmp [word ptr bp+6], -1
-	jne twoPlayer
+	jne Player
 	mov dx, offset active_computer_string
 	int 21h
 	jmp continue1
 	
-twoPlayer:
+Player:
 	mov dx, [bp+6]
 	mov ah, 2
 	int 21h
@@ -584,6 +819,7 @@ anotherColumn:
 BLUE equ ' '
 RED equ 'x'
 YELLOW equ 'm'
+GREEN equ 'n'
 ;anything else is white
 	
 	cmp dl, BLUE
@@ -592,6 +828,8 @@ YELLOW equ 'm'
 	je red1
 	cmp dl, YELLOW
 	je yellow1
+	cmp dl, GREEN
+	je green1
 white1:
 	mov bx, 15
 	jmp AfterColorSet
@@ -603,6 +841,9 @@ red1:
 	jmp AfterColorSet
 yellow1:
 	mov bx, 14
+	jmp AfterColorSet
+green1:
+	mov bx, 10
 AfterColorSet:
 	mov ah, 9
 	mov cx, 2
@@ -649,6 +890,7 @@ endp Present_Board
 ;this procedure explains what each color on the board means
 ;input: 0 for placing stage
 ;		1 for shooting stage
+;output: the needed information presented to the screen
 proc explainColors
 	push bp
 	mov bp, sp
@@ -698,9 +940,11 @@ shootStage:
 endp explainColors
 
 
-;this proc runs a single turn
+;this procedure runs a single player turn, asking the player for a place to shoot and managing that shot
 ;input: active player number, enemy's board offset, active player's guessing board offset, enemy's array of left ship offset
 ;output: al = 1 if won and al = 0 to continue
+;		 the guessing board is changed according to the shot
+;		 the enemy's left ship array changes according to the shot
 proc player_turn
 	push bp
 	mov bp, sp
@@ -714,8 +958,7 @@ proc player_turn
 	mov di, [bp+6] ;guessing board
 	mov si, [bp+8] ;enemy board
 	call clear_board
-	mov ax, [bp+10]
-	push ax
+	push [bp+10]
 	push di
 	call Present_Board
 	push 1
@@ -725,8 +968,7 @@ illegal2:
 	mov dx, offset where_to_shoot
 	mov ah, 9
 	int 21h
-	mov ax, [bp+10]
-	push ax
+	push [bp+10]
 	push di
 	call Choose_Place
 	pop bx 
@@ -736,8 +978,7 @@ illegal2:
 	je shoot
 	;already shot there
 	call clear_board
-	mov ax, [bp+10]
-	push ax
+	push [bp+10]
 	push di
 	call Present_Board
 	push 1
@@ -752,8 +993,7 @@ shoot:
 
 	mov [byte ptr di + bx], RED ;hit sign
 	call clear_board
-	mov ax, [bp+10]
-	push ax
+	push [bp+10]
 	push di
 	call Present_Board
 	push 1
@@ -775,8 +1015,7 @@ shoot:
 	push bx
 	call mark_around_fallen_ship
 	call clear_board
-	mov ax, [bp+10]
-	push ax
+	push [bp+10]
 	push di
 	call Present_Board
 	push 1
@@ -799,8 +1038,7 @@ won:
 miss1:
 	mov [byte ptr di + bx], YELLOW ;miss sign
 	call clear_board
-	mov ax, [bp+10]
-	push ax
+	push [bp+10]
 	push di
 	call Present_Board
 	push 1
@@ -823,6 +1061,7 @@ endp player_turn
 
 ; this procedure detectes the placements of a ship and marks yellow around it so the player would know it is down
 ; input: guessing board offset, a number to add to the board to get one of the ship's places
+; output: the guessing board is changed according to the wanted changes (surronding the fallen ship)
 proc mark_around_fallen_ship
 	push bp
 	mov bp, sp
@@ -971,8 +1210,10 @@ done_marking:
 	ret 4
 endp mark_around_fallen_ship
 
-;This procedure waits for a key press to end
+;This procedure waits for a key press
 ;used to allow the players to see the board before the game continues
+;input: none
+;output: none
 proc Wait_for_key_press
 	push ax
 	push dx
@@ -989,6 +1230,7 @@ endp Wait_for_key_press
 ;this procedure runs a two player match, creating boards and then running the game
 ;input: first player's: board, guessing board, left ship array
 ;		second player's: board, guessing board, left ship array
+;output: changes all given paramenters according to the game's actions
 proc two_player_match
 	push bp
 	mov bp, sp
@@ -996,76 +1238,60 @@ proc two_player_match
 	push bx
 	push dx
 	
-	mov ax, [bp+14] ;Player1Board
-	push ax
-	mov ax, [bp+12] ;Player1Guessing
-	push ax
-	mov ax, [bp+10] ;Player1LeftShip
-	push ax
-	mov ax, [bp+8] ;Player2Board
-	push ax
-	mov ax, [bp+6] ;Player2Guessing
-	push ax
-	mov ax, [bp+4] ;Player2LeftShip
-	push ax
+	push [bp+14] ;Player1Board
+	push [bp+12] ;Player1Guessing
+	push [bp+10] ;Player1LeftShip
+	push [bp+8] ;Player2Board
+	push [bp+6] ;Player2Guessing
+	push [bp+4] ;Player2LeftShip
 	call reset_variables
 	
 	mov bx, '1' ;active player number
 	
 	push bx
-	mov ax, [bp+14] ;Player1Board
-	push ax
-	mov ax, [bp+10] ;Player1LeftShip
-	push ax
-	call Create_Board
+	push [bp+14] ;Player1Board
+	push [bp+10] ;Player1LeftShip
+	call CreatePlayerBoard
 	xor bx, 11b
 	call Wait_for_key_press
 	push bx
-	mov ax, [bp+8] ;Player2Board
-	push ax
-	mov ax, [bp+4] ;Player2LeftShip
-	push ax
-	call Create_Board
+	push [bp+8] ;Player2Board
+	push [bp+4] ;Player2LeftShip
+	call CreatePlayerBoard
 	call Wait_for_key_press
 	xor bx, 11b
 	
 	
 turn_cycle:
 	push bx
-	mov ax, [bp+8] ;Player2Board
-	push ax
-	mov ax, [bp+12] ;Player1Guessing
-	push ax
-	mov ax, [bp+4] ;Player2LeftShip
-	push ax
+	push [bp+8] ;Player2Board
+	push [bp+12] ;Player1Guessing
+	push [bp+4] ;Player2LeftShip
 	call player_turn
 	cmp al, 1
 	je win1
 	call Wait_for_key_press
 	xor bx, 11b
 	push bx
-	mov ax, [bp+14] ;Player1Board
-	push ax
-	mov ax, [bp+6] ;Player2Guessing
-	push ax
-	mov ax, [bp+10] ;Player1LeftShip
-	push ax
+	push [bp+14] ;Player1Board
+	push [bp+6] ;Player2Guessing
+	push [bp+10] ;Player1LeftShip
 	call player_turn
 	cmp al, 1
-	je win1
+	je win2
 	call Wait_for_key_press
 	xor bx, 11b
 	jmp turn_cycle
 win1:
-	mov dx, offset active_player_string
-	mov ah, 9
-	int 21h
-	mov dx, bx
-	mov ah, 2
-	int 21h
-	mov dx, offset win
-	mov ah, 9
-	int 21h
+	push offset Player1Win
+	call PrintBMP
+	jmp end_game
+win2:
+	push offset Player2Win
+	call PrintBMP
+end_game:
+	mov ah, 0
+	int 16h
 	
 	pop dx
 	pop bx
@@ -1077,7 +1303,7 @@ endp two_player_match
 ;this procedure resets all variables needed to run a match to thier starting values
 ;input: first player's: board, guessing board, left ship array
 ;		second player's: board, guessing board, left ship array
-;output: the given variables reset
+;output: the given variables reset (boards to all BLUE and left ships arrays to the Starting_LeftShip array, used only by this procedure remembering the ships lengths)
 proc reset_variables
 	push bp
 	mov bp, sp
@@ -1125,55 +1351,11 @@ done_left_ships:
 	ret 12
 endp reset_variables
 
-;this procedure loads a given text file (trusting it is legal), to a board
-;input: text to open file's name, board to load into's offset
-;output: the board changed to the text file's configurations
-proc load_board
-	push bp
-	mov bp, sp
-	push ax
-	push bx
-	push cx
-	push dx
-	push si
-	
-	mov dx, [bp+6]
-	mov ah, 03Dh
-	xor al, al
-	int 21h
-	
-	mov bx, ax ;file handle
-	mov cx, ROW_AMOUNT+2
-	mov dx, [bp+4]
-	xor si, si ;counts the lines read
-	
-readLine:
-	mov ah, 03fh
-	int 21h
-	add dx, ROW_AMOUNT
-	inc si
-	cmp si, ROW_AMOUNT
-	je done_copying
-	cmp si, ROW_AMOUNT-1
-	jne readLine
-	sub cx, 2
-	jmp readLine
-	
-done_copying:
-	mov ah, 3Eh
-	int 21h ;close file
-
-	pop si
-	pop dx
-	pop cx
-	pop bx
-	pop ax
-	pop bp
-	ret 4
-endp load_board
-
 ;this procedure runs a turn of the computer, using basic thinking to try and make some good shots
 ;input: player's board offset, computer's guessing board, player's left ships array, last_hit_part offset, known_direction offset
+;output: al = 1 if won and al = 0 to continue
+;		 the guessing board is changed according to the shot
+;		 the player's left ship array changes according to the shot
 proc computer_turn
 	push bp
 	mov bp, sp
@@ -1187,6 +1369,7 @@ proc computer_turn
 	mov di, [bp+10] ;computer's guessing board
 	mov si, [bp+12] ;player's board
 	
+	call clear_board
 	push -1
 	push di
 	call Present_Board
@@ -1417,60 +1600,46 @@ end_turn1:
 	ret 10
 endp computer_turn
 	
-;this procedure gets already existing boards and runs a single game using them
+;this procedure runs a single player vs computer match, from creating the player's board and computer's turn to shooting to ending the game with a fitting message
 ;input: player's: board, guessing board, left ship array
 ;		computer's: board, guessing board, left ship array
+;output: none
 proc one_player_Match
 	push bp
 	mov bp, sp
 	push ax
 	push dx
 	
-	mov ax, [bp+14] ;playerBoard
-	push ax
-	mov ax, [bp+12] ;playerGuessingBoard
-	push ax
-	mov ax, [bp+10] ;playerLeftShip
-	push ax
-	mov ax, [bp+8] ;computerBoard
-	push ax
-	mov ax, [bp+6] ;computerGuessingBoard
-	push ax
-	mov ax, [bp+4] ;computerLeftShips
-	push ax
+	push [bp+14] ;playerBoard
+	push [bp+12] ;playerGuessingBoard
+	push [bp+10] ;playerLeftShip
+	push [bp+8] ;computerBoard
+	push [bp+6] ;computerGuessingBoard
+	push [bp+4] ;computerLeftShips
 	call reset_variables
 	
 	push '1'
-	mov ax, [bp+14] ;playerBoard
-	push ax
-	mov ax, [bp+10] ;playerLeftShip
-	push ax
-	call Create_Board
+	push [bp+14] ;playerBoard
+	push [bp+10] ;playerLeftShip
+	call CreatePlayerBoard
 	call Wait_for_key_press
-	push offset board
-	mov ax, [bp+8]
-	push ax
-	call load_board
+	push [bp+8]
+	push [bp+4]
+	call CreateComputerBoard
 	
 	
 turn_cycle1:
 	push '1'
-	mov ax, [bp+8] ;computerBoard
-	push ax
-	mov ax, [bp+12] ;playerGuessingBoard
-	push ax
-	mov ax, [bp+4] ;computerLeftShip
-	push ax
+	push [bp+8] ;computerBoard
+	push [bp+12] ;playerGuessingBoard
+	push [bp+4] ;computerLeftShip
 	call player_turn
 	cmp al, 1
-	je win2
+	je win3
 	call Wait_for_key_press
-	mov ax, [bp+14] ;playerBoard
-	push ax
-	mov ax, [bp+6] ;computerGuessingBoard
-	push ax
-	mov ax, [bp+10] ;playerLeftShip
-	push ax
+	push [bp+14] ;playerBoard
+	push [bp+6] ;computerGuessingBoard
+	push [bp+10] ;playerLeftShip
 	push offset Last_Hit_Part
 	push offset known_direction
 	call computer_turn
@@ -1478,21 +1647,465 @@ turn_cycle1:
 	je lose1
 	call Wait_for_key_press
 	jmp turn_cycle1
-win2:
-	mov dx, offset win
-	mov ah, 9
-	int 21h
-	jmp end_game
+win3:
+	push offset win
+	call PrintBMP
+	jmp end_game1
 lose1:
-	mov dx, offset lose
-	mov ah, 9
-	int 21h
-end_game:
+	push offset lose
+	call PrintBMP
+end_game1:
+	mov ah, 0
+	int 16h
 	pop dx
 	pop ax
 	pop bp
 	ret 12
 endp one_player_Match
+
+;opens a file
+;input: offset file name
+;output: file's handle
+proc OpenFile
+	push bp
+	mov bp, sp
+	push ax
+	push bx
+	push dx
+	; Open file
+	mov ah, 3Dh
+	xor al, al
+	mov dx, [bp+4] ;file name
+	int 21h
+	jc openerror
+	mov [bp+4], ax ;file's handle
+	
+	pop dx
+	pop bx
+	pop ax
+	pop bp
+	ret
+openerror:
+	mov dx, offset ErrorMsg
+	mov ah, 9h
+	int 21h
+	pop dx
+	pop bx
+	pop ax
+	pop bp
+	ret
+endp OpenFile
+
+;Reads Header and Palette
+;input: file handle, offset to put header, offset to put Palette
+;output: changes the given places the the header and palette
+;		 moves the reading pointer in the file to the start of the actual image
+proc ReadHeaderPalette
+	push bp
+	mov bp, sp
+	push ax
+	push bx
+	push cx
+	push dx
+	mov bx, [bp+8]
+	mov ah,3fh
+	mov cx,54
+	mov dx, [bp+6]
+	int 21h
+	; Read BMP file color palette, 256 colors * 4 bytes (400h)
+	mov ah,3fh
+	mov cx,400h
+	mov dx, [bp+4]
+	int 21h
+	pop dx
+	pop cx
+	pop bx
+	pop ax
+	pop bp
+	ret 6
+endp ReadHeaderPalette
+
+;chnanges the colors from BGR (assemblu color format) to RGB (NMP file color format)
+;input: file handle, offset to read Palette from
+;output: the colors in the ports are changed
+proc CopyPal
+	push bp
+	mov bp, sp
+	push ax
+	push bx
+	push cx
+	push dx
+	push si
+	mov bx, [bp+6]
+	; Copy the colors palette to the video memory
+	; The number of the first color should be sent to port 3C8h
+	; The palette is sent to port 3C9h
+	mov si, [bp+4]
+	mov cx,256
+	mov dx,3C8h
+	mov al,0
+	; Copy starting color to port 3C8h
+	out dx,al
+	; Copy palette itself to port 3C9h
+	inc dx
+PalLoop:
+	; Note: Colors in a BMP file are saved as BGR values rather than RGB.
+	mov al,[si+2] ; Get red value.
+	shr al,2 ; Max. is 255, but video palette maximal
+	; value is 63. Therefore dividing by 4.
+	out dx,al ; Send it.
+	mov al,[si+1] ; Get green value.
+	shr al,2
+	out dx,al ; Send it.
+	mov al,[si] ; Get blue value.
+	shr al,2
+	out dx,al ; Send it.
+	add si,4 ; Point to next color.
+	; (There is a null chr. after every color.)
+	loop PalLoop
+	pop si
+	pop dx
+	pop cx
+	pop bx
+	pop ax
+	pop bp
+	ret 4
+endp CopyPal
+
+;prints to the graphic screen the BMP file (after opening file, reading palette and copying it)
+;input: file handle
+;output: copying the BMP file from the file to the data segment to the A000 segment, the graphics screen
+proc CopyBitmap
+	push bp
+	mov bp, sp
+	push ax
+	push bx
+	push cx
+	push dx
+	push di
+	push si
+	mov bx, [bp+4] ;handle
+	; BMP graphics are saved upside-down.
+	; Read the graphic line by line (200 lines in VGA format),
+	; displaying the lines from bottom to top.
+	mov ax, 0A000h
+	mov es, ax
+	mov cx,200
+PrintBMPLoop:
+	push cx
+	; di = cx*320, point to the correct screen line
+	mov di,cx
+	shl cx,6
+	shl di,8
+	add di,cx
+	; Read one line
+	mov ah,3fh
+	mov cx,320
+	mov dx,offset ScrLine
+	int 21h
+	; Copy one line into video memory
+	cld ; Clear direction flag, for movsb
+	mov cx,320
+	mov si,offset ScrLine
+	rep movsb ; Copy line to the screen
+	;rep movsb is same as the following code:
+	;mov es:di, ds:si
+	;inc si
+	;inc di
+	;dec cx
+	pop cx
+	loop PrintBMPLoop
+	pop si
+	pop di
+	pop dx
+	pop cx
+	pop bx
+	pop ax
+	pop bp
+	ret 2
+endp CopyBitmap
+
+;closes an open file
+;input: file handle
+;output: none
+proc CloseFile
+	push bp
+	mov bp, sp
+	push ax
+	push bx
+	mov ah, 03Eh
+	mov bx, [bp+4]
+	int 21h
+	pop bx
+	pop ax
+	pop bp
+	ret 2
+endp CloseFile
+
+;this procedure prints to the screen a BMP file, doing all the things needed
+;opening the file, reading header, reading palette, copying the palette, copying the BMP, and closing the file
+;input: offset of file's name
+;output: moving to graphics mode and chaning the screen to the given BMP file
+proc PrintBMP
+	push bp
+	mov bp, sp
+	push ax
+	
+	; Graphic mode
+	mov ax, 13h
+	int 10h
+	; Process BMP file
+	push [bp+4]
+	call OpenFile
+	pop ax ;file's handle
+	push ax
+	push offset Header
+	push offset Palette
+	call ReadHeaderPalette
+	push ax
+	push offset Palette
+	call CopyPal
+	push ax
+	call CopyBitmap
+	push ax
+	call CloseFile
+	
+	pop ax
+	pop bp
+	ret 2
+endp PrintBMP
+
+;this procedure runs the main menu, continuing from there to other menues and the game itself, or exiting using the exit button
+;input: none
+;output: none
+proc MainMenu
+	push ax
+	push bx
+	push cx
+	push dx
+	
+	mov ax, 0
+	int 33h
+PresentMain:
+	push offset MenuPic
+	call PrintBMP
+MainMenuDataWait:
+	mov ax, 1
+	int 33h
+	mov ax, 3
+	int 33h
+	and bx, 1
+	cmp bx, 1
+	jne MainMenuDataWait
+	
+MainMenuReleaseWait:
+	mov ax, 3
+	int 33h
+	and bx,1
+	cmp bx, 1
+	je MainMenuReleaseWait
+	
+	cmp cx, 0088h
+	jb MainMenuDataWait
+	cmp cx, 01CAh
+	ja MainMenuDataWait
+	cmp dx, 002Dh
+	jb MainMenuDataWait
+	cmp dx, 0040h
+	jb Play
+	cmp dx, 004Fh
+	jb MainMenuDataWait
+	cmp dx, 0062h
+	jb Rules
+	cmp dx, 0072h
+	jb MainMenuDataWait
+	cmp dx, 0082h
+	jb ExitButton
+	jmp MainMenuDataWait
+	
+	
+	
+play:
+	call PlayMenu
+	jmp PresentMain
+Rules:
+	call RulesMenu
+	jmp PresentMain
+	
+ExitButton:
+	call clear_board
+	pop dx
+	pop cx
+	pop bx
+	pop ax
+	ret
+endp MainMenu
+
+;this procedure runs the play menu, continuing from there to games, or goinh back to the main menu
+;input: none
+;output: none
+proc PlayMenu
+	push ax
+	push bx
+	push cx
+	push dx
+	
+	push offset PlayPic
+	call PrintBMP
+PlayMenuDataWait:
+	mov ax, 1
+	int 33h
+	mov ax, 3
+	int 33h
+	and bx, 1
+	cmp bx, 1
+	jne PlayMenuDataWait
+PlayMenuReleaseWait:
+	mov ax, 3
+	int 33h
+	and bx,1
+	cmp bx, 1
+	je PlayMenuReleaseWait
+	
+	cmp cx, 0088h
+	jb PlayMenuDataWait
+	cmp cx, 01CAh
+	ja PlayMenuDataWait
+	cmp dx, 002Dh
+	jb PlayMenuDataWait
+	cmp dx, 0040h
+	jb OnePlayer
+	cmp dx, 004Fh
+	jb PlayMenuDataWait
+	cmp dx, 0062h
+	jb TwoPlayer
+	cmp dx, 0072h
+	jb PlayMenuDataWait
+	cmp dx, 0082h
+	jb BackToMainMenu
+	jmp PlayMenuDataWait
+	
+OnePlayer:
+	push offset Player1Board
+	push offset Player1Guessing
+	push offset Player1LeftShip
+	push offset Player2Board
+	push offset Player2Guessing
+	push offset Player2LeftShip
+	call one_player_Match
+	jmp BackToMainMenu
+TwoPlayer:
+	push offset Player1Board
+	push offset Player1Guessing
+	push offset Player1LeftShip
+	push offset Player2Board
+	push offset Player2Guessing
+	push offset Player2LeftShip
+	call two_player_Match
+BackToMainMenu:
+	
+	pop dx
+	pop cx
+	pop bx
+	pop ax
+	ret
+endp PlayMenu
+
+;this procedure runs the rules interface
+;input: none
+;output: none
+proc RulesMenu
+	push ax
+	push bx
+	push cx
+	push dx
+	push si
+	
+	mov si, 1 ;keeps the current page
+	
+Page1:
+	push offset rules1
+	call PrintBMP
+	jmp RulesWaitForData
+Page2:
+	push offset rules2
+	call PrintBMP
+	jmp RulesWaitForData
+Page3:
+	push offset rules3
+	call PrintBMP
+	jmp RulesWaitForData
+Page4:
+	push offset rules4
+	call PrintBMP
+RulesWaitForData:
+
+	mov ah, 1
+	int 16h
+	jnz KeyPress
+
+	mov ax, 1
+	int 33h
+	mov ax, 3
+	int 33h
+	and bx, 1
+	cmp bx, 1
+	jne RulesWaitForData
+	
+RulesMenuReleaseWait:
+	mov ax, 3
+	int 33h
+	and bx,1
+	cmp bx, 1
+	je RulesMenuReleaseWait
+	
+	cmp dx, 003Eh
+	jb RulesWaitForData
+	cmp dx, 005Fh
+	ja RulesWaitForData
+	cmp cx, 000Ch
+	jb RulesWaitForData
+	cmp cx, 0036h
+	jb GoBack
+	cmp cx, 0248h
+	jb RulesWaitForData
+	cmp cx, 0272h
+	jb GoOn
+	jmp RulesWaitForData
+	
+GoBack:
+	cmp si, 1
+	je RulesWaitForData
+	dec si
+	jmp GoToPage
+GoOn:
+	cmp si, 4
+	je RulesWaitForData
+	inc si
+GoToPage:
+	cmp si, 1
+	je Page1
+	cmp si, 2
+	je Page2
+	cmp si, 3
+	je Page3
+	cmp si, 4
+	je Page4
+	
+KeyPress:
+	escKey equ 011Bh
+	mov ah, 0
+	int 16h
+	cmp ax, escKey
+	jne RulesWaitForData
+	
+	pop si
+	pop dx
+	pop cx
+	pop bx
+	pop ax
+	ret
+endp RulesMenu
 
 start:
 	mov ax, @data
@@ -1500,13 +2113,7 @@ start:
 ; --------------------------
 ; Your code here
 ; --------------------------
-	push offset Player1Board
-	push offset Player1Guessing
-	push offset Player1LeftShip
-	push offset Player2Board
-	push offset Player2Guessing
-	push offset Player2LeftShip
-	call two_player_match
+	call MainMenu
 exit:
 	mov ax, 4c00h
 	int 21h
