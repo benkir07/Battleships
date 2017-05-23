@@ -89,21 +89,19 @@ present:
 	call Present_Board
 	
 	mov ax, di
-	sub ax, si
+	sub ax, si ;ax has now the raw value of the place's offset (place offset - board offset)
 	mov bl, ROW_AMOUNT
 	div bl ;ah holds the x axis (0-9), al holds the y axis (0-9)
 	mov dx, ax
-	
-	push dx ;keep it aside
-	
-	xchg dh, dl ;now, dh stores the y axis (row), dl stores the x axis (column)
+	push dx ;keep it aside for more use later
+	xchg dh, dl ;now, dh stores the y axis (row), dl stores the x axis (column), as needed for int 10h changing cursor position
 	add dh, 2 ;go down two rows
 	add dl, dl ;we are using two digits for each place, so we have to the double the visual movement
 	inc dl ;go rigth one column
 	xor bx, bx
 	mov ah, 2
 	int 10h ;moves the cursor, dh y axis, dl x axis
-	mov bx, 10
+	mov bx, 10 ;light green
 	mov cx, 2
 	mov ah, 9
 	int 10h ;changes the next two digits to light green
@@ -114,12 +112,12 @@ present:
 	
 	pop bx ;bh hold x axis, bl y axis (as dx did before)
 	
-	
 	up equ 048h
 	left equ 04Bh
 	down equ 050h
 	right equ 04Dh
 	keyEnter equ 01Ch
+	;scan codes
 	
 waitForData:
 	mov ah, 0
@@ -137,22 +135,22 @@ waitForData:
 	jmp waitForData
 	
 MoveRight:
-	cmp bh, ROW_AMOUNT-1
+	cmp bh, ROW_AMOUNT-1 ;makes sure player is not trying to move out of the boundries
 	je waitForData
 	inc di
 	jmp present
 MoveLeft:
-	cmp bh, 0
+	cmp bh, 0 ;makes sure player is not trying to move out of the boundries
 	je waitForData
 	dec di
 	jmp present
 MoveUp:
-	cmp bl, 0
+	cmp bl, 0 ;makes sure player is not trying to move out of the boundries
 	je waitForData
 	sub di, ROW_AMOUNT
 	jmp present
 MoveDown:
-	cmp bl, ROW_AMOUNT-1
+	cmp bl, ROW_AMOUNT-1 ;makes sure player is not trying to move out of the boundries
 	je waitForData
 	add di, ROW_AMOUNT
 	jmp present
@@ -190,9 +188,9 @@ proc Check_legal_to_place
 	
 CheckTop:
 	cmp al, 0
-	je CheckMid ;its is part of the top row
+	je CheckMid ;its is part of the top row so we should not check its top surronding
 	cmp ah, 0
-	je CheckTopMid ;it is part of the left column
+	je CheckTopMid ;it is part of the left column so we should not check its TopLeft corner
 CheckTopLeft:
 	cmp [byte ptr bx-ROW_AMOUNT-1], BLUE
 	jne illegal3
@@ -200,14 +198,14 @@ CheckTopMid:
 	cmp [byte ptr bx-ROW_AMOUNT], BLUE
 	jne illegal3
 	cmp ah, ROW_AMOUNT-1
-	je CheckMid ;it is part of the right column
+	je CheckMid ;it is part of the right column so we should not check its TopRight corner
 CheckTopRight:
 	cmp [byte ptr bx-ROW_AMOUNT+1], BLUE
 	jne illegal3
 	
 CheckMid:
 	cmp ah, 0
-	je CheckMidMid ;it is part of the left column
+	je CheckMidMid ;it is part of the left column so we should not check its left slot
 CheckMidLeft:
 	cmp [byte ptr bx-1], BLUE
 	jne illegal3
@@ -215,16 +213,16 @@ CheckMidMid:
 	cmp [byte ptr bx], BLUE
 	jne illegal3
 	cmp ah, ROW_AMOUNT-1
-	je CheckBottom ;it is part of the right column
+	je CheckBottom ;it is part of the right column so we should not check its right slot
 CheckMidRight:
 	cmp [byte ptr bx+1], BLUE
 	jne illegal3
 
 	cmp al, ROW_AMOUNT-1
-	je DoneChecking
+	je DoneChecking ;it is part of the bottom row, so we should not check its bottom surronding
 CheckBottom:
 	cmp ah, 0
-	je CheckBottomMid
+	je CheckBottomMid ;its is part of the left column, so we should not check its BottomLeft corner
 CheckBottomLeft:
 	cmp [byte ptr bx+ROW_AMOUNT-1], BLUE
 	jne illegal3
@@ -232,13 +230,13 @@ CheckBottomMid:
 	cmp [byte ptr bx+ROW_AMOUNT], BLUE
 	jne illegal3
 	cmp ah, ROW_AMOUNT-1
-	je DoneChecking ;it is part of the right column
+	je DoneChecking ;it is part of the right column, so we should not check its BottomRight corner
 CheckBottomRight:
 	cmp [byte ptr bx+ROW_AMOUNT+1], BLUE
 	jne illegal3
 	
 DoneChecking:
-;if passed all the compares and got here, place is legal
+;if passed all the compares and got here, place is legal (all surrondings are BLUE)
 	pop ax
 	xor al, al
 	pop bx
@@ -273,7 +271,7 @@ proc CreatePlayerBoard
 	mov si, [bp+4] ;array keeping the lengths of the ships
 	mov cl, '0' ;cl keeps the value that will represent the ship on the board
 start_placeing_ship:
-	push -1
+	push -1 ;signs we have passed the last part of the ship, ship parts's offset will be pushed after it
 	call clear_board
 	push [bp+8]
 	push bx
@@ -282,6 +280,7 @@ start_placeing_ship:
 	call explainColors
 	
 illegal4:
+	;informs the player the current ship's length
 	mov ah, 9
 	mov dx, offset place_ship1
 	int 21h
@@ -316,25 +315,25 @@ illegal4:
 	jmp illegal4
 legal3:
 	push di ;keep in the stack segment the position future to be painted
-	dec ch
-	mov [byte ptr di], GREEN
+	dec ch ;signs that we have already "placed" a position
+	mov [byte ptr di], GREEN ;paints the position for true view for the player
 	call clear_board
 	push [bp+8]
 	push bx
 	call Present_Board
 	push 0
 	call explainColors
-illegal5:
 	mov [byte ptr di], BLUE ;clears the place to allow correct checking of legal placing
 	
 	up equ 048h
 	left equ 04Bh
 	down equ 050h
 	right equ 04Dh
-	
+
 	mov ah, 9
 	mov dx, offset direction
-	int 21h
+	int 21h ;asks the player for direction
+illegal5:
 	mov ah, 0
 	int 16h
 	cmp ah, up
@@ -345,27 +344,16 @@ illegal5:
 	je place_left
 	cmp ah, right
 	je place_right
-	
 ;if here, input wasn't legal
-	mov [byte ptr di], GREEN
-	call clear_board
-	push [bp+8]
-	push bx
-	call Present_Board
-	push 0
-	call explainColors
-	mov dx, offset illegal_direction
-	mov ah, 9
-	int 21h
 	jmp illegal5
 	
 place_up:
 ;checks it is far enough from the border
 	mov al, ROW_AMOUNT
-	mul ch ;ax stores now how much could be between di and bx, where we place and the board's start
+	mul ch ;ax stores now how much to reduce from the first position to get the last position
 	mov dx, di
 	sub dx, ax ;dx stores now where the last placement would be
-	cmp dx, bx
+	cmp dx, bx ;checks if the last poition is on board (and not above it)
 	jl too_close_to_border
 place_up1:
 	sub di, ROW_AMOUNT
@@ -375,7 +363,7 @@ place_up1:
 	cmp al, 0
 	jne remove_written_postitions ;remove the ship and go back to start placing it
 up_legal:
-	push di
+	push di ;keep in the stack segment the position future to be painted
 	dec ch
 	cmp ch, 0
 	jne place_up1
@@ -384,13 +372,13 @@ up_legal:
 place_down:
 ;checks it is far enough from the border
 	mov al, ROW_AMOUNT
-	mul ch ;ax stores now how much could be between di and bx, where we place and the board's start
+	mul ch ;ax stores now how much to add to the first position to get the last position
 	mov dx, di
 	add dx, ax ;dx stores now where the last placement would be
 	mov ax, bx
 	add ax, AREA-1 ;ax stores the end of the board
-	cmp dx, ax
-	ja too_close_to_border
+	cmp dx, ax ;checks if the last poition is on board (and not bellow it)
+	jg too_close_to_border
 place_down1:
 	add di, ROW_AMOUNT
 	push di
@@ -399,7 +387,7 @@ place_down1:
 	cmp al, 0
 	jne remove_written_postitions ;remove the ship and go back to start placing it
 down_legal:
-	push di
+	push di ;keep in the stack segment the position future to be painted
 	dec ch
 	cmp ch, 0
 	jne place_down1
@@ -408,12 +396,11 @@ down_legal:
 place_left:
 ;checks it is far enough from the border
 	mov ax, di
-	sub ax, bx
+	sub ax, bx ;ax has now raw value of the position's offset (offset place - offset board)
 	mov dl, ROW_AMOUNT
 	div dl ;ah stores x axis, al stores y axis
-;ah stores how many tiles are there to the left
-	
-	cmp ah, ch
+;ah effectivly stores how many tiles are there to the left of the slot
+	cmp ah, ch ;checks if we have enough tiles to the left for a ship this long
 	jl too_close_to_border
 place_left1:
 	dec di
@@ -423,7 +410,7 @@ place_left1:
 	cmp al, 0
 	jne remove_written_postitions ;remove the ship and go back to start placing it
 left_legal:
-	push di
+	push di ;keep in the stack segment the position future to be painted
 	dec ch
 	cmp ch, 0
 	jne place_left1
@@ -432,14 +419,14 @@ left_legal:
 place_right:
 ;checks it is far enough from the border
 	mov ax, di
-	sub ax, bx
+	sub ax, bx ;ax has now raw value of the position's offset (offset place - offset board)
 	mov dl, ROW_AMOUNT
 	div dl ;ah stores x axis, al stores y axis
-;ah stores how many tiles are there to the left
+;ah effectivly stores how many tiles are there to the left
 	mov al, ROW_AMOUNT
-	sub al, [si] ;al stores now how many tiles is max allow to be to the left
-	cmp ah, al
-	ja too_close_to_border
+	sub al, [si] ;al stores now how many tiles to the left is maximun to allow for a ship this long to be
+	cmp ah, al ;checks if we have too many tiles to the left for a ship this long
+	jg too_close_to_border
 place_right1:
 	inc di
 	push di
@@ -448,15 +435,15 @@ place_right1:
 	cmp al, 0
 	jne remove_written_postitions ;remove the ship and go back to start placing it
 right_legal:
-	push di
+	push di ;keep in the stack segment the position future to be painted
 	dec ch
 	cmp ch, 0
 	jne place_right1
 	jmp done_writing_positions
 	
 too_close_to_border:
-	add sp, 2
-	inc ch
+	add sp, 2 ;removes the first position from the stack
+	inc ch ;signing we actually did not place a ship part
 	call clear_board
 	push [bp+8]
 	push bx
@@ -473,7 +460,7 @@ remove_written_postitions:
 	pop ax
 	cmp ax, -1
 	jne remove_written_postitions
-	push -1
+	push -1 ;again, signs we have passed the last part of the ship, ship parts's offset will be pushed after it
 	call clear_board
 	push [bp+8]
 	push bx
@@ -486,7 +473,7 @@ remove_written_postitions:
 	jmp illegal4
 	
 done_writing_positions:
-	push bp
+	push bp ;we have to place the ship without taking the values out of the stack, because we might want to delete the ship, what requires us to remeber where have we written
 	mov bp, sp
 place_ship:
 	add bp, 2
@@ -496,9 +483,9 @@ place_ship:
 GREEN equ 'n'
 	mov [byte ptr di], GREEN
 	jmp place_ship
+	
 ship_placed:
-	mov bp, sp
-	pop bp
+	pop bp ;goes back to its original value
 	call clear_board
 	push [bp+8]
 	push bx
@@ -519,16 +506,16 @@ delete_positions:
 	cmp di, -1
 	je start_placeing_ship
 	mov [byte ptr di], BLUE
-	jmp delete_positions
+	jmp delete_positions ;deletes the positions from the stack and from the board
 	
 	
 	
 paint_ship_white:
 	pop di
 	cmp di, -1
-	je done_placing_a_ship ;clears the stack from not wanted positions
+	je done_placing_a_ship
 	mov [di], cl
-	jmp paint_ship_white
+	jmp paint_ship_white ;paints the currently green positions, white
 done_placing_a_ship:
 	inc cl
 	inc si
@@ -574,21 +561,21 @@ proc CreateComputerBoard
 	mov si, [bp+4] ;array keeping the lengths of the ships
 	mov cl, '0' ;cl keeps the value that will represent the ship on the board
 start_placeing_ship_:
-	push -1
+	push -1 ;signs we have passed the last part of the ship, ship parts's offset will be pushed after it
 illegal4_:
 	mov ch, [si] ;ch represents the left slots to place
 	push cx
 	mov ah, 2Ch
 	int 21h ;random place
 	pop cx
-	mov al, dl
+	mov al, dl ;al has a number betwin 0 and 99
 	mov ah, AREA
-	mul ah
+	mul ah ;ax has a number betwin 0 and 100*AREA -1
 	mov dl, 100
 	div dl ;al has a random numeber betwin 0 and AREA-1
 	xor ah, ah
 	mov di, ax
-	add di, bx ;di has now the position looked at
+	add di, bx ;di has now the position randomly generated
 	
 	push di ;where the ship starts
 	push bx
@@ -596,7 +583,7 @@ illegal4_:
 	cmp al, 0
 	jne illegal4_
 	push di ;keep in the stack segment the position future to be painted
-	dec ch
+	dec ch ;signs that one position has already been chosen
 
 	push cx
 	mov ah, 2Ch
@@ -617,10 +604,10 @@ illegal4_:
 place_up_:
 ;checks it is far enough from the border
 	mov al, ROW_AMOUNT
-	mul ch ;ax stores now how much could be between di and bx, where we place and the board's start
+	mul ch ;ax stores now how much to reduce from the first position to get the last position
 	mov dx, di
 	sub dx, ax ;dx stores now where the last placement would be
-	cmp dx, bx
+	cmp dx, bx ;checks if the last poition is on board (and not above it)
 	jl too_close_to_border_
 place_up1_:
 	sub di, ROW_AMOUNT
@@ -630,7 +617,7 @@ place_up1_:
 	cmp al, 0
 	jne remove_written_postitions_ ;remove the ship and go back to start placing it
 up_legal_:
-	push di
+	push di ;keep in the stack segment the position future to be painted
 	dec ch
 	cmp ch, 0
 	jne place_up1_
@@ -639,13 +626,13 @@ up_legal_:
 place_down_:
 ;checks it is far enough from the border
 	mov al, ROW_AMOUNT
-	mul ch ;ax stores now how much could be between di and bx, where we place and the board's start
+	mul ch ;ax stores now how much to add to the first position to get the last position
 	mov dx, di
 	add dx, ax ;dx stores now where the last placement would be
 	mov ax, bx
 	add ax, AREA-1 ;ax stores the end of the board
-	cmp dx, ax
-	ja too_close_to_border_
+	cmp dx, ax ;checks if the last poition is on board (and not bellow it)
+	jg too_close_to_border_
 place_down1_:
 	add di, ROW_AMOUNT
 	push di
@@ -654,7 +641,7 @@ place_down1_:
 	cmp al, 0
 	jne remove_written_postitions_ ;remove the ship and go back to start placing it
 down_legal_:
-	push di
+	push di ;keep in the stack segment the position future to be painted
 	dec ch
 	cmp ch, 0
 	jne place_down1_
@@ -663,12 +650,11 @@ down_legal_:
 place_left_:
 ;checks it is far enough from the border
 	mov ax, di
-	sub ax, bx
+	sub ax, bx ;ax has now raw value of the position's offset (offset place - offset board)
 	mov dl, ROW_AMOUNT
 	div dl ;ah stores x axis, al stores y axis
-;ah stores how many tiles are there to the left
-	
-	cmp ah, ch
+;ah effectivly stores how many tiles are there to the left of the slot
+	cmp ah, ch ;checks if we have enough tiles to the left for a ship this long
 	jl too_close_to_border_
 place_left1_:
 	dec di
@@ -678,7 +664,7 @@ place_left1_:
 	cmp al, 0
 	jne remove_written_postitions_ ;remove the ship and go back to start placing it
 left_legal_:
-	push di
+	push di ;keep in the stack segment the position future to be painted
 	dec ch
 	cmp ch, 0
 	jne place_left1_
@@ -687,14 +673,14 @@ left_legal_:
 place_right_:
 ;checks it is far enough from the border
 	mov ax, di
-	sub ax, bx
+	sub ax, bx ;ax has now raw value of the position's offset (offset place - offset board)
 	mov dl, ROW_AMOUNT
 	div dl ;ah stores x axis, al stores y axis
-;ah stores how many tiles are there to the left
+;ah effectivly stores how many tiles are there to the left
 	mov al, ROW_AMOUNT
-	sub al, [si] ;al stores now how many tiles is max allow to be to the left
-	cmp ah, al
-	ja too_close_to_border_
+	sub al, [si] ;al stores now how many tiles to the left is maximun to allow for a ship this long to be
+	cmp ah, al ;checks if we have too many tiles to the left for a ship this long
+	jg too_close_to_border_
 place_right1_:
 	inc di
 	push di
@@ -703,14 +689,14 @@ place_right1_:
 	cmp al, 0
 	jne remove_written_postitions_ ;remove the ship and go back to start placing it
 right_legal_:
-	push di
+	push di ;keep in the stack segment the position future to be painted
 	dec ch
 	cmp ch, 0
 	jne place_right1_
 	jmp done_writing_positions_
 	
 too_close_to_border_:
-	add sp, 2
+	add sp, 2 ;removes the first position from the stack
 	jmp illegal4_
 ;removes the saved positions from the stack until hits the -1 signing to stop
 ;this allows to start again placing a ship
@@ -718,20 +704,20 @@ remove_written_postitions_:
 	pop ax
 	cmp ax, -1
 	jne remove_written_postitions_
-	push -1
+	push -1 ;signs we have passed the last part of the ship, ship parts's offset will be pushed after it
 	jmp illegal4_
 	
 done_writing_positions_:
 	pop di
 	cmp di, -1
 	je done_placing_a_ship_
-	mov [di], cl
+	mov [di], cl ;paints white the chosen positions
 	jmp done_writing_positions_
 done_placing_a_ship_:
 	inc cl
 	inc si
 	cmp [byte ptr si], '$' ;checks if got to end of array
-	jne start_placeing_ship_
+	jne start_placeing_ship_ 
 	
 	pop di
 	pop si
@@ -776,12 +762,12 @@ proc Present_Board
 	
 	mov dx, offset active_player_string
 	mov ah, 9
-	int 21h
+	int 21h ;'Player'
 	
 	cmp [word ptr bp+6], -1
 	jne Player
 	mov dx, offset active_computer_string
-	int 21h
+	int 21h ;'Compter'
 	jmp continue1
 	
 Player:
@@ -792,7 +778,7 @@ Player:
 continue1:
 	mov ah, 2
 	mov dl, 0ah
-	int 21h
+	int 21h ;down a row
 	
 	mov dl, ' '
 	int 21h
@@ -805,7 +791,7 @@ printTopPart:
 	int 21h
 	pop dx
 	inc dx
-	loop printTopPart
+	loop printTopPart ;prints the letters in the top part of the screen
 	
 	mov ch, 0 ;counts the lines
 	mov bx, [bp+4]
@@ -814,16 +800,16 @@ anotherLine:
 	mov dl, 0ah
 	mov ah, 2
 	int 21h
-	;down a line
+	;down a row
 	mov dl, ch
 	add dl, '0'
 	mov ah, 2
 	int 21h
-	;the line's number
+	;the row's number
 anotherColumn:
 	push bx
 	push cx
-	mov dl, [bx]
+	mov dl, [bx] ;dl stores the value in the currently scanned position
 	
 BLUE equ ' '
 RED equ 'x'
@@ -856,7 +842,7 @@ green1:
 AfterColorSet:
 	mov ah, 9
 	mov cx, 2
-	int 10h
+	int 10h ;changes the color
 	mov ah, 2
 	mov dl, 219
 	int 21h
@@ -873,10 +859,10 @@ AfterColorSet:
 	mov ah, 9
 	mov cx, 1
 	mov bx, 0
-	int 10h
+	int 10h ;changes the color to black
 	mov ah, 2
 	mov dl, 219
-	int 21h ;visual help :)
+	int 21h ;prints a black blank to prevent the cursor showing
 	pop cx
 	pop bx
 	
@@ -986,6 +972,7 @@ illegal2:
 	call Choose_Place
 	pop bx 
 	sub bx, di ;the number to add to a board's offset to get the desired place
+;				we need the offset this way so we can add it to both the guessing board and the enemy board
 	
 	cmp [byte ptr di + bx], BLUE
 	je shoot
@@ -1019,8 +1006,8 @@ shoot:
 	sub al, '0' ;its place in the left ship array
 	xor ah, ah
 	mov si, [bp+4] ;left ship array
-	add si, ax
-	dec [byte ptr si]
+	add si, ax ;si has now the place in the left ship array of the ship that was just shot
+	dec [byte ptr si] ;signs a ship part was hit
 	cmp [byte ptr si], 0
 	jne continue_playing
 ;ship is down
@@ -1045,6 +1032,7 @@ check_loop:
 	inc si
 	jmp check_loop
 won:
+;if all ships have no left parts, player won
 	pop ax
 	mov al, 1
 	jmp end_turn
@@ -1095,20 +1083,20 @@ proc mark_around_fallen_ship
 ;this part checks what direction the ship continues	
 check_up:
 	cmp al, 0
-	je check_left
-	cmp [byte ptr si - ROW_AMOUNT], RED
+	je check_left ;if part of top row should not check if continuing up
+	cmp [byte ptr si - ROW_AMOUNT], RED ;checks above
 	je continue_up
 	
 check_left:
 	cmp ah, 0
-	je check_down ;if jumps here, we know it is the edge, we don't know in which direction
-	cmp [byte ptr si - 1], RED
+	je check_down ;if part of left column should not check if continueing left
+	cmp [byte ptr si - 1], RED ;checks to the left
 	je continue_left
 	
 check_down:
 	cmp al, ROW_AMOUNT-1
-	je mark_right ;we know it is not going up, not left and it can't go down, so it is left edge
-	cmp [byte ptr si + ROW_AMOUNT], RED
+	je mark_right ;we know it is not going up, not left and it can't go down (because it is in the bottom row), so it is left edge of the ship, continuing right
+	cmp [byte ptr si + ROW_AMOUNT], RED ;checks bellow
 	je mark_down ;if jumps here, we know it is the edge, and it move down from here
 	jmp mark_right ;if it isn't going left, up, or down, it is going right, which is left edge
 ;
@@ -1120,7 +1108,7 @@ continue_up:
 	cmp al, 0
 	je mark_down ;if it is top part, it is the edge
 	cmp [byte ptr si - ROW_AMOUNT], RED
-	je continue_up
+	je continue_up ;continues going up until it is the last slot
 	jmp mark_down
 	
 continue_left:
@@ -1130,47 +1118,51 @@ continue_left:
 	cmp ah, 0
 	je mark_right
 	cmp [byte ptr si - 1], RED
-	je continue_left
+	je continue_left ;continues going left until it is the last slot
 	jmp mark_right
-;
+
 ;this part moves down or right and marks it (depending on ship's direction)
 mark_down:
 	cmp al, 0
 	je down_mark_loop
+;this part marks the three slots above the top edge of the ship
+;if the top edge is part of the top row, this part would be skipped to down_mark_loop
 	cmp ah, 0
-	je after_left_marked
+	je after_left_marked ;do not mark to the left if is part of the left column
 	mov [byte ptr si-ROW_AMOUNT-1], YELLOW
 after_left_marked:
 	mov [byte ptr si-ROW_AMOUNT], YELLOW
 	cmp ah, ROW_AMOUNT-1
-	je down_mark_loop
+	je down_mark_loop ;do not mark to the right if it is part of the right column
 	mov [byte ptr si-ROW_AMOUNT+1], YELLOW
 	
+;this part marks besides the ship and goes down until it gets to the bottom edge of the ship
 down_mark_loop:
 	cmp ah, 0
-	je mark_right_slot
+	je mark_right_slot ;do not mark to the left if is part of the left column
 	mov [byte ptr si-1], YELLOW
 mark_right_slot:
 	cmp ah, ROW_AMOUNT-1
-	je check_bottom_edge
+	je check_bottom_edge ;do not mark to the right if it is part of the right column
 	mov [byte ptr si+1], YELLOW
 check_bottom_edge:
 	cmp al, ROW_AMOUNT-1
-	je done_marking
+	je done_marking ;we are done marking if the current place is in the bottom line of the board
 	cmp [byte ptr si+ROW_AMOUNT], RED
-	jne mark_bottom_part
-	add si, ROW_AMOUNT
+	jne mark_bottom_part ;mark the three bottom slots if ship is over
+	add si, ROW_AMOUNT ;update paramenters to the next slot
 	inc al ;y axis
 	jmp down_mark_loop
 
+;this part marks the three slots bellow the ship
 mark_bottom_part:	
 	cmp ah, 0
-	je mark_bottom_middle
+	je mark_bottom_middle ;do not mark to the left if is part of the left column
 	mov [byte ptr si+ROW_AMOUNT-1], YELLOW
 mark_bottom_middle:
 	mov [byte ptr si+ROW_AMOUNT], YELLOW
 	cmp ah, ROW_AMOUNT-1
-	je done_marking
+	je done_marking ;do not mark to the right if it is part of the right column
 	mov [byte ptr si+ROW_AMOUNT+1], YELLOW
 	jmp done_marking
 	
@@ -1179,40 +1171,44 @@ mark_bottom_middle:
 mark_right:
 	cmp ah, 0
 	je right_mark_loop
+;this part marks the three slots left to the ship's edge
+;if the left edge is part of the left row, this part would be skipped to right_mark_loop
 	cmp al, 0
-	je after_top_marked
+	je after_top_marked ;do not mark the top if part of the top row
 	mov [byte ptr si-ROW_AMOUNT-1], YELLOW
 after_top_marked:
 	mov [byte ptr si-1], YELLOW
 	cmp al, ROW_AMOUNT-1
-	je right_mark_loop
+	je right_mark_loop ;do not mark the bottom if part of bottom row
 	mov [byte ptr si+ROW_AMOUNT-1], YELLOW
 	
+;this part marks besides the ship and goes right until it gets to the right edge of the ship
 right_mark_loop:
 	cmp al, 0
-	je mark_bottom_slot
+	je mark_bottom_slot ;do not mark the top if part of the top row
 	mov [byte ptr si-ROW_AMOUNT], YELLOW
 mark_bottom_slot:
 	cmp al, ROW_AMOUNT-1
-	je check_right_edge
+	je check_right_edge ;do not mark the bottom if part of bottom row
 	mov [byte ptr si+ROW_AMOUNT], YELLOW
 check_right_edge:
 	cmp ah, ROW_AMOUNT-1
-	je done_marking
+	je done_marking ;we are done marking if the current place is in the most right column of the board
 	cmp [byte ptr si+1], RED
-	jne mark_right_part
-	inc si
+	jne mark_right_part ;mark the three bottom slots if ship is over
+	inc si ;update paramenters to the next slot
 	inc ah ;x axis
 	jmp right_mark_loop
 
+;this part marks the three slots right to the ship's edge
 mark_right_part:	
 	cmp al, 0
-	je mark_right_middle
+	je mark_right_middle ;do not mark the top if part of the top row
 	mov [byte ptr si-ROW_AMOUNT+1], YELLOW
 mark_right_middle:
 	mov [byte ptr si+1], YELLOW
 	cmp al, ROW_AMOUNT-1
-	je done_marking
+	je done_marking ;do not mark the bottom if part of bottom row
 	mov [byte ptr si+ROW_AMOUNT+1], YELLOW
 	jmp done_marking
 
@@ -1272,7 +1268,7 @@ proc two_player_match
 	push [bp+14] ;Player1Board
 	push [bp+10] ;Player1LeftShip
 	call CreatePlayerBoard
-	xor bx, 11b
+	xor bx, 11b ;changes '1' to '2' and '2' to '1'
 	call Wait_for_key_press
 	push bx
 	push [bp+8] ;Player2Board
@@ -1311,7 +1307,7 @@ win2:
 	call PrintBMP
 end_game:
 	mov ah, 0
-	int 16h
+	int 16h ;waits for a key press during the win message
 	
 	pop dx
 	pop bx
@@ -1339,13 +1335,13 @@ proc reset_variables
 
 	mov si, AREA-1
 reset_boards:
-	mov bx, [bp+14]
+	mov bx, [bp+14] ;Player1Board
 	mov [byte ptr bx+si], BLUE
-	mov bx, [bp+12]
+	mov bx, [bp+12] ;Player1Guessing
 	mov [byte ptr bx+si], BLUE
-	mov bx, [bp+8]
+	mov bx, [bp+8] ;Player2Board
 	mov [byte ptr bx+si], BLUE
-	mov bx, [bp+6]
+	mov bx, [bp+6] ;Player2Guessing
 	mov [byte ptr bx+si], BLUE
 	cmp si, 0
 	je done_boards
@@ -1354,13 +1350,13 @@ reset_boards:
 	
 done_boards:
 	mov bx, offset Starting_LeftShip
-	mov si, [bp+10]
-	mov di, [bp+4]
+	mov si, [bp+10] ;Player1LeftShip
+	mov di, [bp+4] ;Player2LeftShip
 reset_left_ship:
-	mov al, [bx]
-	mov [si], al
-	mov [di], al
-	cmp [byte ptr bx], '$'
+	mov al, [bx] ;moves the needed value to al
+	mov [si], al ;moves the needed value to Player1's LeftShip
+	mov [di], al ;moves the needed value to Player2's LeftShip
+	cmp [byte ptr bx], '$' ;'$' signs the end of the array, stop copying when '$' is found
 	je done_left_ships
 	inc bx
 	inc si
@@ -1412,12 +1408,14 @@ proc computer_turn
 	
 	mov bx, [bp+6]
 	cmp [word ptr bx], -1
-	je randomPlace
+	je randomPlace ;if there is no known place already, shoot a random place
 	
 	mov bx, [bp+4]
 	cmp [byte ptr bx], -1
-	jne shoot_direction
+	jne shoot_direction ;if there is a known direction, shoot the known direction from the knwon place
 	
+;here if there is a known place but the direction is still unknown
+;so generate a direction
 randomDirection:
 	mov ah, 2Ch
 	int 21h
@@ -1426,110 +1424,111 @@ randomDirection:
 	mov dl, 25
 	div dl ;al=0 would mean up, al=1 down, al=2 left, al=3 right
 	mov bx, [bp+6]
-	mov bx, [bx]
+	mov bx, [bx] ;bx has the offset of the last part hit, which is the value of the variable Last_Hit_Part
+;				  we use the Last_Hit_Part in all 4 following branches so we get it here already
 	cmp al, 0
 	je up1
 	cmp al, 1
 	je down1
 	
+	;the processes of shooting left or right need the x axis, so if those directions are chosen, we should calculate it
 	push ax
 	mov ax, bx
 	mov dl, ROW_AMOUNT
 	div dl ;ah has x axis, al has y axis
-	mov dx, ax
+	mov dx, ax ;dh has x axis, dl has y axis
 	pop ax
 	cmp al, 2
 	je left1
 	jmp right1
 up1:
 	cmp bx, ROW_AMOUNT
-	jb randomDirection
+	jb randomDirection ;if the last part hit is part of the top row, we cannot shoot above it and should generate a new direction
 	sub bx, ROW_AMOUNT
 	cmp [byte ptr di+bx], BLUE
-	jne randomDirection
+	jne randomDirection ;if the slot above the last part hit was already uncovered, we cannot shoot it and should generate a new direction
 	jmp shoot1
 down1:
 	add bx, ROW_AMOUNT
 	cmp bx, AREA
-	jae randomDirection
+	jae randomDirection ;if the position bellow the last part hit is not on the board (which means the last part hit is in the bottom row), we cannot shoot it and should generate a new direction
 	cmp [byte ptr di+bx], BLUE
-	jne randomDirection
+	jne randomDirection ;if the slot bellow the last part hit was already uncovered, we cannot shoot it and should generate a new direction
 	jmp shoot1
 left1:
 	cmp dh, 0
-	je randomDirection
+	je randomDirection ;if the last part hit is part of the left column, we cannot shoot left to it and should generate a new direction
 	dec bx
 	cmp [byte ptr di+bx], BLUE
-	jne randomDirection
+	jne randomDirection ;if the slot left to the last part hit was already uncovered, we cannot shoot it and should generate a new direction
 	jmp shoot1
 right1:
 	cmp dh, ROW_AMOUNT-1
-	je randomDirection
+	je randomDirection ;if the last part hit is part of the right column, we cannot shoot right to it and should generate a new direction
 	inc bx
 	cmp [byte ptr di+bx], BLUE
-	jne randomDirection
+	jne randomDirection ;if the slot right to the last part hit was already uncovered, we cannot shoot it and should generate a new direction
 	jmp shoot1
 	
 switchDirection:
-	push bx
-	mov bx, [bp+4]
+	mov bx, [bp+4] ;known_direction
 	xor [byte ptr bx], 1 ;switches 0 to 1, and 2 to 3 and backwards (effectivly up to down and left to right and backwards)
-	pop bx
 shoot_direction:
-	mov bx, [bp+4]
-	mov al, [bx]
-	mov bx, [bp+6]
+	mov bx, [bp+4] ;known_direction
+	mov al, [bx] ;the value of the known_direction, 0 means up, 1 means down, 2 means left and 3 means right
+	mov bx, [bp+6] ;Last_Hit_Part
 	mov bx, [bx]
 	cmp al, 0
 	je up2
 	cmp al, 1
 	je down2
-	
+
+	;the processes of shooting left or right need the x axis, so we should calculate it
 	push ax
 	mov ax, bx
 	mov dl, ROW_AMOUNT
 	div dl ;ah has x axis, al has y axis
-	mov dx, ax
+	mov dx, ax ;dh has x axis, dl has y axis
 	pop ax
 	cmp al, 2
 	je left2
 	jmp right2
 up2:
 	cmp bx, ROW_AMOUNT
-	jb switchDirection
+	jb switchDirection ;if the last part hit was part of the top row and the known direction is up, we should switch direction to shoot down until the ship is down
 	sub bx, ROW_AMOUNT
 	cmp [byte ptr di+bx], YELLOW
-	je switchDirection
+	je switchDirection ;when encounter a yellow slot in the known direction, switch direction
 	cmp [byte ptr di+bx], RED
-	je up2
-	jmp shoot1
+	je up2 ;if the slot to the known direction is RED (which means hit), too, continue moving this direction
+	jmp shoot1 ;when found a position in the direction that is empty, shoot it
 down2:
 	add bx, ROW_AMOUNT
 	cmp bx, AREA
-	jae switchDirection
+	jae switchDirection ;if the last part hit was part of the bottom row and the known direction is down, we should switch direction to shoot up until the ship is down
 	cmp [byte ptr di+bx], YELLOW
-	je switchDirection
+	je switchDirection ;when encounter a yellow slot in the known direction, switch direction
 	cmp [byte ptr di+bx], RED
-	je down2
-	jmp shoot1
+	je down2 ;if the slot to the known direction is RED (which means hit), too, continue moving this direction
+	jmp shoot1 ;when found a position in the direction that is empty, shoot it
 left2:
 	cmp dh, 0
-	je switchDirection
+	je switchDirection ;if the last part hit was part of the left column and the known direction is left, we should switch direction to shoot right until the ship is down
 	dec bx
 	cmp [byte ptr di+bx], YELLOW
-	je switchDirection
+	je switchDirection ;when encounter a yellow slot in the known direction, switch direction
 	cmp [byte ptr di+bx], RED
-	je left2
-	jmp shoot1
+	je left2 ;if the slot to the known direction is RED (which means hit), too, continue moving this direction
+	jmp shoot1 ;when found a position in the direction that is empty, shoot it
 right2:
 	cmp dh, ROW_AMOUNT-1
-	je switchDirection
+	je switchDirection ;if the last part hit was part of the right column and the known direction is right, we should switch direction to shoot left until the ship is down
 	inc bx
 	cmp [byte ptr di+bx], YELLOW
-	je switchDirection
+	je switchDirection ;when encounter a yellow slot in the known direction, switch direction
 	cmp [byte ptr di+bx], RED
-	je right2
-	jmp shoot1
+	je right2 ;if the slot to the known direction is RED (which means hit), too, continue moving this direction
+	jmp shoot1 ;when found a position in the direction that is empty, shoot it
 	
 	
 randomPlace:
@@ -1544,19 +1543,20 @@ randomPlace:
 	mov bx, ax
 	
 	cmp [byte ptr di+bx], BLUE
-	jne randomPlace
-	mov al, -1
-shoot1:
+	jne randomPlace ;if randomized place was shot already, randomize another place
+	mov al, -1 ;signs that the direction is unknown and that we are shooting randomly
+shoot1: ;runs the process of shooting the position in bx (si should be the player's board, di should be the computer's guessing board, and al should be the current direction shooting, -1 if randomly)
 	cmp [byte ptr si + bx], BLUE ;checks the value in the actual board
 	je miss2
 
 	mov [byte ptr di + bx], RED ;hit sign
+	;when hit
 	mov cx, bx
 	mov bx, [bp+6]
-	mov [bx], cx
+	mov [bx], cx ;sign in the Last_Hit_Part the part hit now
 	mov bx, [bp+4]
-	mov [bx], al
-	mov bx, cx
+	mov [bx], al ;sign in the known_direction the direction currently shot, -1 if unknown
+	mov bx, cx ;bx gets back his value
 	call clear_board
 	push -1
 	push di
@@ -1567,21 +1567,23 @@ shoot1:
 	mov ah, 9
 	int 21h
 
-	mov al, [si + bx] ;the value of the ship
+	mov al, [si + bx] ;checks the value of the ship
 	sub al, '0' ;its place in the left ship array
 	xor ah, ah
 	mov si, [bp+8] ;left ship array
-	add si, ax
-	dec [byte ptr si]
+	add si, ax ;points now at the place of the ship just shot
+	dec [byte ptr si] ;signs one part of the ship was shot
 	cmp [byte ptr si], 0
 	jne continue_playing1
 ;ship is down
+	;resets the known direction and last part hit to unknown, so the computer would shoot randomly again
 	push bx
 	mov bx, [bp+6]
 	mov [word ptr bx], -1
 	mov bx, [bp+4]
 	mov [byte ptr bx], -1
 	pop bx
+	
 	push di
 	push bx
 	call mark_around_fallen_ship
@@ -1601,8 +1603,9 @@ check_loop1:
 	cmp [byte ptr si], 0
 	jne continue_playing1
 	inc si
-	jmp check_loop1
+	jmp check_loop1 ;checks if the computer won
 won1:
+;if went through the whole array and no ship has any parts of it left, computer won
 	pop ax
 	mov al, 1
 	jmp end_turn1
@@ -1691,7 +1694,7 @@ lose1:
 	call PrintBMP
 end_game1:
 	mov ah, 0
-	int 16h
+	int 16h ;waits for a key press during the win/loss message
 	pop dx
 	pop ax
 	pop bp
@@ -1936,34 +1939,34 @@ MainMenuDataWait:
 	int 33h
 	mov ax, 3
 	int 33h
-	and bx, 1
-	cmp bx, 1
+	and bx, 1 ;nullifies the register except for the bit signing left click
+	cmp bx, 1 ;checks for a left click
 	jne MainMenuDataWait
 	
 MainMenuReleaseWait:
 	mov ax, 3
 	int 33h
-	and bx,1
-	cmp bx, 1
-	je MainMenuReleaseWait
+	and bx,1 ;nullifies the register except for the bit signing left click
+	cmp bx, 1 ;checks for a left click
+	je MainMenuReleaseWait ;waits until the left click stops (key is released)
 	
 	cmp cx, 0088h
-	jb MainMenuDataWait
+	jb MainMenuDataWait ;if click is left to the buttons wait for data
 	cmp cx, 01CAh
-	ja MainMenuDataWait
+	ja MainMenuDataWait ;if click is right to the buttons wait for data
 	cmp dx, 002Dh
-	jb MainMenuDataWait
+	jb MainMenuDataWait ;if click above the buttons wait for data
 	cmp dx, 0040h
-	jb Play
+	jb Play ;if click above the Top button's bottom do its thing
 	cmp dx, 004Fh
-	jb MainMenuDataWait
+	jb MainMenuDataWait ;if click above second button's top wait for data
 	cmp dx, 0062h
-	jb Rules
+	jb Rules ;if click above the second button's bottom do its thing
 	cmp dx, 0072h
-	jb MainMenuDataWait
+	jb MainMenuDataWait ;if click above third button's top wait for data
 	cmp dx, 0082h
-	jb ExitButton
-	jmp MainMenuDataWait
+	jb ExitButton ;if click above third button's bottom do its thing
+	jmp MainMenuDataWait ;if click does is not in any above categories wait for data
 	
 	
 	
@@ -2009,6 +2012,7 @@ PlayMenuReleaseWait:
 	cmp bx, 1
 	je PlayMenuReleaseWait
 	
+;buttons here work just like the buttons in the Main Menu
 	cmp cx, 0088h
 	jb PlayMenuDataWait
 	cmp cx, 01CAh
@@ -2080,27 +2084,29 @@ Page3:
 Page4:
 	push offset rules4
 	call PrintBMP
+	
 RulesWaitForData:
 
 	mov ah, 1
 	int 16h
-	jnz KeyPress
+	jnz KeyPress ;check if keyboard pressed
 
 	mov ax, 1
 	int 33h
 	mov ax, 3
 	int 33h
 	and bx, 1
-	cmp bx, 1
+	cmp bx, 1 ;checks if left click pressed
 	jne RulesWaitForData
 	
 RulesMenuReleaseWait:
 	mov ax, 3
 	int 33h
 	and bx,1
-	cmp bx, 1
+	cmp bx, 1 ;waits for left click to release
 	je RulesMenuReleaseWait
 	
+;buttons checks work very similar to other MainMenu's way
 	cmp dx, 003Eh
 	jb RulesWaitForData
 	cmp dx, 005Fh
@@ -2117,14 +2123,15 @@ RulesMenuReleaseWait:
 	
 GoBack:
 	cmp si, 1
-	je RulesWaitForData
+	je RulesWaitForData ;if page 1 cannot go back
 	dec si
 	jmp GoToPage
 GoOn:
 	cmp si, 4
-	je RulesWaitForData
+	je RulesWaitForData ;if last page cannot go forward
 	inc si
 GoToPage:
+;checks what page is it and prints it
 	cmp si, 1
 	je Page1
 	cmp si, 2
@@ -2137,7 +2144,7 @@ GoToPage:
 KeyPress:
 	escKey equ 011Bh
 	mov ah, 0
-	int 16h
+	int 16h ;checks if the key press was esc, if it was, end the procedure, if wasnt keep waiting for data
 	cmp ax, escKey
 	jne RulesWaitForData
 	
