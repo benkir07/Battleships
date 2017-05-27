@@ -3,7 +3,6 @@ MODEL small
 STACK 100h
 DATASEG
 	filename db 'file.bmp',0
-	filehandle dw ?
 	Header db 54 dup (0)
 	Palette db 256*4 dup (0)
 	ScrLine db 320 dup (0)
@@ -71,7 +70,7 @@ proc ReadHeaderPalette
 	ret 6
 endp ReadHeaderPalette
 
-;chnanges the colors from BGR (assemblu color format) to RGB (NMP file color format)
+;chnanges the colors from BGR (assembly color format) to RGB (BMP file color format)
 ;input: file handle, offset to read Palette from
 ;output: the colors in the ports are changed
 proc CopyPal
@@ -231,8 +230,7 @@ start:
 	mov ah,1
 	int 21h
 	; Back to text mode
-	mov ah, 0
-	mov al, 2
+	mov ax, 3
 	int 10h
 exit:
 	mov ax, 4c00h

@@ -60,7 +60,6 @@ DATASEG
 	Player2Win db 'pl2.bmp',0
 	win db 'win.bmp',0
 	lose db 'los.bmp',0
-	filehandle dw ?
 	Header db 54 dup (0)
 	Palette db 256*4 dup (0)
 	ScrLine db 320 dup (0)
@@ -1767,8 +1766,7 @@ proc ReadHeaderPalette
 endp ReadHeaderPalette
 
 ;chnanges the colors from BGR (assemblu color format) to RGB (NMP file color format)
-;input: file handle
-;		offset to read Palette from
+;input: offset to read Palette from
 ;output: none in the stack
 ;		 the colors in the ports are changed
 proc CopyPal
@@ -1812,7 +1810,7 @@ PalLoop:
 	pop bx
 	pop ax
 	pop bp
-	ret 4
+	ret 2
 endp CopyPal
 
 ;prints to the graphic screen the BMP file (after opening file, reading palette and copying it)
@@ -1907,7 +1905,6 @@ proc PrintBMP
 	push offset Header
 	push offset Palette
 	call ReadHeaderPalette
-	push ax
 	push offset Palette
 	call CopyPal
 	push ax
